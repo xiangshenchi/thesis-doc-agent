@@ -2,7 +2,7 @@
 
 > 一个 Claude Skill，读取你的项目代码与对话历史，自动生成可直接用于毕业论文的软件工程文档。
 
-**[English Documentation](./README.md)**
+**[English Documentation](./README.en.md)**
 
 ---
 
