@@ -2,7 +2,7 @@
 
 > A Claude skill that reads your project code and conversation history, then generates structured software engineering documents ready for academic thesis submission.
 
-**[中文文档](./README.zh-CN.md)**
+**[中文文档](./README.md)**
 
 ---
 
