@@ -96,15 +96,36 @@ Skill 指令中明确禁止出现"在认证模块中…"这类无路径的模糊
 ```
 thesis-doc-agent/
 ├── SKILL.md                      # 核心指令（入口文件）
-└── references/
-    ├── req-analysis.md           # 需求分析文档模板
-    ├── arch-design.md            # 技术架构设计模板
-    ├── db-design.md              # 数据库设计模板
-    ├── module-design.md          # 模块设计 + API 接口模板
-    └── test-plan.md              # 测试方案 + 总结展望模板
+├── references/
+│   ├── req-analysis.md           # 需求分析文档模板
+│   ├── arch-design.md            # 技术架构设计模板
+│   ├── db-design.md              # 数据库设计模板
+│   ├── module-design.md          # 模块设计 + API 接口模板
+│   └── test-plan.md              # 测试方案 + 总结展望模板
+└── example/                      # 完整使用示例
+    ├── README.md                 # 示例说明
+    ├── memos-worker/             # 示例开源项目
+    └── docs/                     # 使用 skill 生成的完整文档
+        ├── 1-需求分析.md
+        ├── 2-技术架构.md
+        ├── 3-数据库设计.md
+        └── 4-模块设计.md
 ```
 
 Skill 采用渐进式加载 — `SKILL.md` 始终在上下文中，各类模板文件仅在请求对应文档时才被加载，节省上下文空间。
+
+## 示例
+
+查看 `example/` 目录下的完整使用示例：
+
+- **示例项目**：[memos-worker](https://github.com/souvenp/memos-worker) - 一个基于 Cloudflare Workers 的无服务器笔记应用
+- **生成的文档**：[example/docs/](example/docs/) - 使用本 skill 生成的完整软件工程文档
+
+示例展示了如何从一个真实的开源项目生成：
+- 需求分析文档
+- 技术架构设计文档
+- 数据库设计文档
+- 模块详细设计文档
 
 ## 自定义
 
