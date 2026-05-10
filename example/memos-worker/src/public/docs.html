@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>Docs</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+	<link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.bubble.css" rel="stylesheet">
+	<link id="light-theme-link" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs.min.css">
+	<link id="dark-theme-link" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" disabled>
+</head>
+<style>
+  :root {
+	--bg-color: #f8f9fa;
+	--sidebar-bg: #ffffff;
+	--editor-bg: #ffffff;
+	--border-color: #e9ecef;
+	--text-color: #333333;
+	--heading-color: #1a1a1a;
+	--text-muted-color: #6c757d;
+	--accent-color: #007bff;
+	--hover-bg-color: #e9ecef;
+	--active-bg-color: #dbe9f9;
+	--selected-bg-color: #d0e0f0;
+	--active-selected-bg-color: #c0d8f5;
+	--quote-bg-color: #f9f9f9;
+	--quote-border-color: #cccccc;
+	--quote-text-color: #666666;
+	--code-inline-bg: #f0f0f0;
+	--code-inline-text: #c7254e;
+	--icon-color: #555;
+	--link-color: var(--accent-color);
+  }
+
+  body.dark-mode {
+	--bg-color: #1a1d24;
+	--sidebar-bg: #262626;
+	--editor-bg: #282c34;
+	--border-color: #3e4451;
+	--text-color: #dcdfe4;
+	--heading-color: #eef2f7;
+	--text-muted-color: #9ca3af;
+	--quote-text-color: #9ca3af;
+	--accent-color: #0090f1;
+	--hover-bg-color: #3a404c;
+	--active-bg-color: rgba(0, 144, 241, 0.2);
+	--selected-bg-color: #404754;
+	--active-selected-bg-color: #4a5469;
+	--quote-bg-color: #2c313a;
+	--quote-border-color: #4b5263;
+	--code-inline-bg: #3a404c;
+	--code-inline-text: #e06c75;
+	--icon-color: #9da5b4;
+	--link-color: #61afef;
+  }
+
+  /* --- LAYOUT STYLES --- */
+  body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	margin: 0;
+	display: flex;
+	height: 100vh;
+	background-color: var(--bg-color);
+	color: var(--text-color);
+	transition: background-color 0.3s ease, color 0.3s ease;
+	overflow: hidden;
+  }
+
+  .app-container { display: flex; width: 100%; height: 100vh; }
+  #sidebar-left { min-width: 200px; width: 250px; max-width: 400px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; resize: horizontal; }
+  .sidebar-header { padding: 10px 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+  .sidebar-header h2 { margin: 0; font-size: 16px; color: var(--text-color); }
+  .sidebar-actions button { background: none; border: none; cursor: pointer; color: var(--text-muted-color); font-size: 16px; padding: 5px; border-radius: 4px; }
+  .sidebar-actions button:hover { background-color: var(--hover-bg-color); color: var(--text-color); }
+  #file-tree-container { flex-grow: 1; overflow-y: auto; }
+  #file-tree { list-style: none; padding: 10px 0; margin: 0; }
+  #file-tree li { padding: 0; margin: 0; position: relative; }
+  .tree-item { display: flex; align-items: center; padding: 10px 15px; cursor: pointer; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-color); transition: background-color 0.15s ease-out; }
+  .tree-item:hover { background-color: var(--hover-bg-color); }
+  .tree-item.active { background-color: var(--active-bg-color); font-weight: 600; }
+  .tree-item .icon { margin-right: 8px; width: 16px; text-align: center; color: var(--text-muted-color); opacity: 0.8; }
+  .tree-item.folder .icon-folder { color: #f8d775; }
+  .tree-item.file .icon-file { color: var(--accent-color); }
+  .tree-item .toggle-icon { transition: transform 0.2s; }
+  .tree-item.folder.collapsed .toggle-icon { transform: rotate(-90deg); }
+  .tree-item.folder.collapsed + .nested { display: none; }
+  .nested { list-style: none; padding-left: 20px; }
+  .tree-item.selected { background-color: var(--selected-bg-color); }
+  .tree-item.active.selected { background-color: var(--active-selected-bg-color); }
+  .tree-item.dragging { opacity: 0.5; }
+  .tree-item.folder.drag-over { outline: 2px dashed var(--accent-color); background-color: var(--active-bg-color); }
+  #editor-container { flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0; background-color: var(--bg-color); }
+  #editor { flex-grow: 1; overflow-y: auto; background-color: var(--editor-bg); position: relative; }
+  #sidebar-right { min-width: 180px; width: 220px; max-width: 350px; background-color: var(--sidebar-bg); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; overflow: hidden; resize: horizontal; }
+  #outline-container { flex-grow: 1; overflow-y: auto; padding: 10px 0; }
+  #outline-container ul { padding-left: 15px; list-style: none; margin: 0; }
+  #outline-container li { margin: 5px 0; }
+  .outline-item a { display: block; padding: 2px 0; color: var(--text-muted-color); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.2s; font-size: 14px; }
+  .outline-item.outline-item-h1 { font-weight: 500; }
+  .outline-item.outline-item-h2 { padding-left: 1em; }
+  .outline-item.outline-item-h3 { padding-left: 2em; }
+  .outline-item.outline-item-h4 { padding-left: 3em; }
+  .outline-item a:hover { color: var(--text-color); }
+  .resizer { width: 5px; background-color: var(--bg-color); cursor: col-resize; flex-shrink: 0; z-index: 10; }
+  .resizer:hover { background-color: var(--accent-color); }
+  #editor-actions { position: absolute; top: 10px; right: 20px; z-index: 101; display: flex; align-items: center; gap: 10px; }
+  #save-btn { background-color: var(--accent-color); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; transition: background-color 0.2s ease, opacity 0.2s ease; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+  #save-btn:hover { opacity: 0.9; }
+  #save-btn:disabled { background-color: var(--text-muted-color); cursor: not-allowed; opacity: 0.7; }
+  .action-btn { background-color: var(--sidebar-bg); color: var(--text-muted-color); border: 1px solid var(--border-color); height: 33px; width: 33px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 14px; text-decoration: none; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); transition: background-color 0.2s ease; }
+  .action-btn:hover { background-color: var(--hover-bg-color); color: var(--text-color); }
+  #editor-loader { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.8); z-index: 200; display: flex; align-items: center; justify-content: center; }
+  body.dark-mode #editor-loader { background: rgba(45, 45, 48, 0.8); }
+  #editor-loader.hidden { display: none; }
+  .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--accent-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+  body.dark-mode .spinner { border: 4px solid #4a4a4a; border-top: 4px solid var(--accent-color); }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  #context-menu { position: fixed; z-index: 300; background-color: var(--sidebar-bg); border: 1px solid var(--border-color); border-radius: 5px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); display: none; flex-direction: column; padding: 5px; min-width: 200px; }
+  #context-menu button { background: none; border: none; text-align: left; padding: 8px 12px; cursor: pointer; border-radius: 3px; display: flex; align-items: center; gap: 10px; font-size: 14px; width: 100%; color: var(--text-color); }
+  #context-menu button i { width: 16px; text-align: center; }
+  #context-menu button:hover { background-color: var(--hover-bg-color); }
+  #context-menu button#ctx-delete-btn:hover { background-color: #f8d7da; color: #721c24; }
+  body.dark-mode #context-menu button#ctx-delete-btn:hover { background-color: #5f2f32; color: #f8d7da; }
+
+  .ql-editor {
+	position: absolute;
+	top: 0; left: 0; right: 0; bottom: 0;
+	line-height: 1.7;
+	font-size: 16px;
+	color: var(--text-color);
+	padding: 40px 50px;
+	box-sizing: border-box;
+	outline: none;
+	margin: 0 auto;
+  }
+  .ql-editor a {
+	color: var(--link-color);
+	text-decoration: none;
+  }
+
+  .ql-editor a:hover {
+	text-decoration: underline; /* Add underline on hover for clear feedback */
+  }
+  .ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor h4, .ql-editor h5, .ql-editor h6 { font-weight: 600; margin-top: 1.5em; margin-bottom: 0.8em; line-height: 1.3; color: var(--heading-color); }
+  .ql-editor h1 { font-size: 2em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; }
+  .ql-editor h2 { font-size: 1.5em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; }
+  .ql-editor h3 { font-size: 1.25em; }
+  .ql-editor h4 { font-size: 1.1em; }
+  .ql-editor h5 { font-size: 1em; font-weight: 600; }
+  .ql-editor h6 { font-size: 1em; color: var(--quote-text-color); }
+  .ql-editor blockquote { border-left: 4px solid var(--quote-border-color); font-size: 14px; margin: 1.5em 0; padding: 0px 20px; color: var(--quote-text-color); background-color: var(--quote-bg-color); }
+  .ql-editor ul, .ql-editor ol { padding-left: 1.5em; margin-bottom: 1em; }
+  .ql-editor li { margin-bottom: 0.5em; }
+  .ql-snow .ql-editor pre.ql-syntax, .ql-bubble .ql-editor pre.ql-syntax {
+	padding: 1em;
+	font-family: 'Fira Code', 'Operator Mono', 'Consolas', 'Monaco', monospace;
+	font-size: 13px;
+	overflow-x: auto;
+	margin: 1.5em 0;
+	background-color: #f8f9ff !important;
+	color: #5d5d5d !important;
+  }
+  body.dark-mode .ql-snow .ql-editor pre.ql-syntax, body.dark-mode .ql-bubble .ql-editor pre.ql-syntax {
+	background-color: #23241f !important;
+	color: #f8f8f2 !important;
+  }
+  .ql-editor code:not(pre code) { background-color: var(--code-inline-bg); color: var(--code-inline-text); padding: 3px 6px; border-radius: 4px; font-size: 90%; }
+  .ql-editor hr { height: 1px; border: 0; background-color: var(--border-color); margin: 2em 0; }
+  .ql-bubble .ql-tooltip { background-color: #282c34; border: 1px solid #3e4451; color: white; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); border-radius: 6px; z-index: 102; /* ensure it's above action buttons */ }
+  .ql-bubble .ql-tooltip a { color: #61afef; }
+
+  .ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor h4, .ql-editor h5 { position: relative; padding-left: 20px; margin-left: -20px; }
+  .ql-editor h1::before, .ql-editor h2::before, .ql-editor h3::before, .ql-editor h4::before, .ql-editor h5::before { content: '▼'; position: absolute; left: -4px; top: 50%; transform: translateY(-50%) rotate(0deg); font-size: 0.8em; color: var(--icon-color); transition: transform 0.2s ease-in-out; cursor: pointer; }
+  .ql-editor h1[data-collapsed="true"]::before, .ql-editor h2[data-collapsed="true"]::before, .ql-editor h3[data-collapsed="true"]::before, .ql-editor h4[data-collapsed="true"]::before, .ql-editor h5[data-collapsed="true"]::before { transform: translateY(-50%) rotate(-90deg); }
+  .ql-collapsible-hidden { display: none; }
+
+  .ql-bubble .ql-editor blockquote {
+	margin-top: 0;
+	margin-bottom: 0;
+  }
+
+  /* 1. Set up the li as a flex container. */
+  .ql-editor ul li {
+	list-style-type: none;
+	display: flex;
+	align-items: flex-start;
+	margin-bottom: 0.2em;
+  }
+
+  /* 2. Style the ::before pseudo-element for custom bullets. */
+  .ql-editor ul li::before {
+	margin-right: 0.6em;
+	color: var(--text-muted-color);
+	flex-shrink: 0;
+	line-height: 1.4;
+	position: relative;
+  }
+
+  /* 3. Define the bullet character and size for each indentation level. */
+  /* Level 1 */
+  .ql-editor ul > li:not([class*="ql-indent-"])::before {
+	content: '•';
+	font-size: 1.5em;
+	top: -0.15em;
+  }
+
+  /* Level 2 */
+  .ql-editor ul li.ql-indent-1::before {
+	content: '◦';
+	font-size: 1.4em;
+	top: -0.1em;
+  }
+
+  /* Level 3 */
+  .ql-editor ul li.ql-indent-2::before {
+	content: '▪';
+	font-size: 1.3em;
+	top: -0.05em;
+  }
+
+  /* Level 4 */
+  .ql-editor ul li.ql-indent-3::before {
+	content: '▫';
+	font-size: 1.2em;
+	top: 0em;
+  }
+  /* ADD THIS CSS FOR THE NEW TABLE BLOT */
+  .ql-table-container {
+	margin: 1em 0;
+	padding: 1px; /* Prevents margin collapse */
+  }
+  .ql-table-container table {
+	width: 100%;
+	border-collapse: collapse;
+	border: 1px solid var(--border-color);
+  }
+  .ql-table-container th,
+  .ql-table-container td {
+	border: 1px solid var(--border-color);
+	padding: 8px 12px;
+	text-align: left;
+  }
+  .ql-table-container th {
+	background-color: var(--hover-bg-color);
+	font-weight: 600;
+  }
+  /* END OF NEW CSS */
+</style>
+<body>
+<div class="app-container">
+	<aside id="sidebar-left">
+		<div class="sidebar-header">
+			<h2>Docs</h2>
+			<div class="sidebar-actions">
+				<button id="new-note-btn" title="Create Doc"><i class="fas fa-file-alt"></i></button>
+				<button id="new-folder-btn" title="Create Folder"><i class="fas fa-folder-plus"></i></button>
+			</div>
+		</div>
+		<div id="file-tree-container"><ul id="file-tree"></ul></div>
+	</aside>
+	<div class="resizer" id="resizer-left"></div>
+	<main id="editor-container">
+		<div id="editor"><!-- Quill editor mounts here --></div>
+		<div id="editor-actions">
+			<button id="theme-toggle-btn" class="action-btn" title="Toggle Theme"><i class="fas fa-moon"></i></button>
+			<button id="save-btn" disabled><i class="fas fa-save"></i> Save</button>
+			<a href="/" class="action-btn" title="Back to Home" target="_blank"><i class="fas fa-arrow-up-right-from-square"></i></a>
+		</div>
+	</main>
+	<div class="resizer" id="resizer-right"></div>
+	<aside id="sidebar-right">
+		<div class="sidebar-header"><h2>Outline</h2></div>
+		<div id="outline-container"></div>
+	</aside>
+</div>
+<div id="context-menu">
+	<button id="ctx-rename-btn"><i class="fas fa-edit"></i> Rename</button>
+	<button id="ctx-move-btn" disabled><i class="fas fa-arrows-alt"></i> Move (Drag & Drop)</button>
+	<button id="ctx-delete-btn"><i class="fas fa-trash-alt"></i> Delete</button>
+</div>
+<div id="editor-loader" class="hidden"><div class="spinner"></div></div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+<script src="https://unpkg.com/quilljs-markdown@latest/dist/quilljs-markdown.js"></script>
+<script>
+	// --- MOCK API (UNCHANGED FROM PREVIOUS MERGE) ---
+	const mockData = {
+		tree: [
+			{ id: '1', type: 'folder', title: '快速入门', children: [ {id: '1-1', type: 'file', title: '欢迎使用'}, {id: '1-2', type: 'file', title: 'Markdown 语法'}, ] },
+			{ id: '2', type: 'folder', title: '项目文档', children: [ {id: '2-1', type: 'file', title: '需求分析'}, ] },
+			{id: '3', type: 'file', title: '会议纪要.md'}
+		],
+		nodes: {
+			'1-1': { id: '1-1', content: '<h1>欢迎使用我们的文档系统</h1><p>这是一个使用 <strong>Quill</strong> 驱动的富文本编辑器。</p><ul><li>功能齐全</li><li>体验流畅</li><li>支持 Markdown 快捷输入</li></ul>' },
+			'1-2': { id: '1-2', content: '<h2>Markdown 基础语法</h2><h3>标题</h3><pre class="ql-syntax" spellcheck="false"># H1\n## H2\n### H3</pre><h3>列表</h3><ul><li>无序列表 1</li><li>无序列表 2</li></ul><ol><li>有序列表 1</li><li>有序列表 2</li></ol><h3>引用</h3><blockquote>Stay hungry, stay foolish.</blockquote>' },
+			'2-1': { id: '2-1', content: '<h1>需求分析文档</h1><table><thead><tr><th>功能点</th><th>优先级</th><th>负责人</th></tr></thead><tbody><tr><td>用户登录</td><td>P0</td><td>张三</td></tr><tr><td>文档编辑</td><td>P0</td><td>李四</td></tr><tr><td>权限管理</td><td>P1</td><td>王五</td></tr></tbody></table>' },
+			'3': { id: '3', content: '<h1>2024-Q3 第一次会议纪要</h1><p>讨论了关于新版本编辑器选型的问题，最终决定采用 Quill。</p>' },
+		}
+	};
+	const mockApi = {
+		getTree: () => Promise.resolve(mockData.tree),
+		getNode: (id) => Promise.resolve(mockData.nodes[id] || {id, content: `<h1>未找到文档 ${id}</h1>`}),
+		createNode: (data) => {
+			const newNode = {...data, id: `new-${Date.now()}`};
+			if (data.type === 'file') { mockData.nodes[newNode.id] = {id: newNode.id, content: `<h1>${data.title}</h1><p>开始写作...</p>`}; }
+			return Promise.resolve(newNode);
+		},
+		saveNode: (id, content) => { if(mockData.nodes[id]) mockData.nodes[id].content = content; return Promise.resolve({success: true}); },
+		deleteNode: (id) => Promise.resolve({success: true}),
+		moveNode: (id, new_parent_id) => Promise.resolve({success: true}),
+		renameNode: (id, new_title) => Promise.resolve({success: true}),
+	};
+	// --- REAL API IMPLEMENTATION ---
+
+	// A helper function to handle API responses and errors consistently
+	async function handleApiResponse(response) {
+		if (!response.ok) {
+			// Try to parse a JSON error message from the backend, otherwise use status text
+			const errorData = await response.json().catch(() => ({ message: response.statusText }));
+			throw new Error(errorData.message || 'An unknown API error occurred');
+		}
+		// For DELETE requests or other successful requests with no content
+		if (response.status === 204) {
+			return { success: true };
+		}
+		return response.json();
+	}
+
+	const realApi = {
+		getTree: () => fetch('/api/docs/tree').then(handleApiResponse),
+
+		getNode: (id) => fetch(`/api/docs/node/${id}`).then(handleApiResponse),
+
+		createNode: (data) => fetch('/api/docs/node', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data)
+		}).then(handleApiResponse),
+
+		saveNode: (id, content) => fetch(`/api/docs/node/${id}`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ content }) // Send content inside an object
+		}).then(handleApiResponse),
+
+		deleteNode: (id) => fetch(`/api/docs/node/${id}`, {
+			method: 'DELETE'
+		}).then(handleApiResponse),
+
+		moveNode: (id, new_parent_id) => fetch(`/api/docs/node/${id}`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ new_parent_id })
+		}).then(handleApiResponse),
+
+		renameNode: (id, new_title) => fetch(`/api/docs/node/${id}/rename`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ new_title })
+		}).then(handleApiResponse),
+	};
+
+	// --- MAIN APPLICATION LOGIC ---
+	async function main() {
+		let activeNoteId = null;
+		let selectedNodeId = null;
+		let flatNodes = [];
+		const collapsedFolderIds = new Set();
+		let quill;
+		let userSettings = {};
+
+		const themeToggleBtn = document.getElementById('theme-toggle-btn');
+		const fileTreeEl = document.getElementById('file-tree');
+		const newNoteBtn = document.getElementById('new-note-btn');
+		const newFolderBtn = document.getElementById('new-folder-btn');
+		const saveBtn = document.getElementById('save-btn');
+		const contextMenu = document.getElementById('context-menu');
+		const renameBtn = document.getElementById('ctx-rename-btn');
+		const deleteBtn = document.getElementById('ctx-delete-btn');
+		const editorLoader = document.getElementById('editor-loader');
+		const outlineContainer = document.getElementById('outline-container');
+		// const api = mockApi;
+		const api = realApi;
+
+		try {
+			userSettings = await api.getSettings();
+		} catch (error) {
+			console.error("Failed to load Memos settings, defaulting to local upload:", error);
+			// 提供一个安全的回退默认值
+			userSettings = { imageUploadDestination: 'local' };
+		}
+
+		async function uploadImage(file) {
+			const destination = userSettings.imageUploadDestination || 'local';
+			console.log(`Uploading image via: ${destination}`);
+
+			try {
+				if (destination === 'local') {
+					const formData = new FormData();
+					formData.append('file', file);
+
+					// 调用后端的本地上传接口
+					const response = await fetch('/api/upload/image', {
+						method: 'POST',
+						body: formData,
+					});
+					if (!response.ok) throw new Error(`Local upload failed: ${await response.text()}`);
+					const result = await response.json();
+					return result.url;
+
+				} else if (destination === 'imgur') {
+					if (!userSettings.imgurClientId) {
+						throw new Error("Imgur Client ID is not configured in Memos settings.");
+					}
+					const formData = new FormData();
+					formData.append('file', file);
+					formData.append('clientId', userSettings.imgurClientId); // 将 Client ID 发送到我们的后端代理
+
+					// 调用后端的 Imgur 代理上传接口
+					const response = await fetch('/api/proxy/upload/imgur', {
+						method: 'POST',
+						body: formData,
+					});
+
+					if (!response.ok) {
+						const errorResult = await response.json();
+						throw new Error(`Imgur proxy failed: ${errorResult.message || 'Unknown error'}`);
+					}
+					const result = await response.json();
+					return result.url;
+				} else {
+					throw new Error(`Unknown upload destination: ${destination}`);
+				}
+			} catch (error) {
+				console.error("Image upload failed:", error);
+				throw error; // 将错误重新抛出，以便粘贴处理器可以捕获它
+			}
+		}
+
+		function applyTheme(theme) {
+			localStorage.setItem('docs-theme', theme);
+			const lightThemeLink = document.getElementById('light-theme-link');
+			const darkThemeLink = document.getElementById('dark-theme-link');
+
+			if (theme === 'dark') {
+				document.body.classList.add('dark-mode');
+				themeToggleBtn.innerHTML = `<i class='fas fa-sun'></i>`;
+				lightThemeLink.disabled = true;
+				darkThemeLink.disabled = false;
+			} else {
+				document.body.classList.remove('dark-mode');
+				themeToggleBtn.innerHTML = `<i class='fas fa-moon'></i>`;
+				lightThemeLink.disabled = false;
+				darkThemeLink.disabled = true;
+			}
+			if (quill && quill.getModule('syntax')) {
+				quill.getModule('syntax').highlight();
+			}
+		}
+		function handleThemeToggle() {
+			const newTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+			applyTheme(newTheme);
+		}
+
+		function updateOutline() {
+			if (!quill) return;
+			const headings = [];
+			quill.root.querySelectorAll('h1, h2, h3, h4, h5').forEach((heading, index) => {
+				const text = heading.innerText.trim();
+				if (!text) return;
+				const level = parseInt(heading.tagName.substring(1));
+				const id = `heading-${index}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+				heading.id = id;
+				headings.push({ level, text, id });
+			});
+			if (headings.length === 0) {
+				outlineContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted-color); font-size: 14px; padding: 20px;">No headings found.</p>';
+				return;
+			}
+			const outlineHtml = `<ul>${headings.map(h => `<li class="outline-item outline-item-h${h.level}"><a href="#${h.id}">${h.text}</a></li>`).join('')}</ul>`;
+			outlineContainer.innerHTML = outlineHtml;
+			outlineContainer.querySelectorAll('a').forEach(anchor => {
+				anchor.addEventListener('click', function(e) {
+					e.preventDefault();
+					const targetElement = quill.root.querySelector(this.getAttribute('href'));
+					if (targetElement) targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				});
+			});
+		}
+
+		// --- EDITOR INITIALIZATION (CORRECTED ATOMIC TABLE IMPLEMENTATION) ---
+		function initializeEditor() {
+			const BlockEmbed = Quill.import('blots/block/embed');
+			const Delta = Quill.import('delta');
+
+			// --- 1. DEFINE THE ATOMIC TABLE BLOT ---
+			// This blot treats the entire table as a single, non-editable unit.
+			class TableBlot extends BlockEmbed {
+				static create(value) {
+					const node = super.create();
+					node.setAttribute('contenteditable', 'false'); // Make the whole container non-editable
+
+					const table = document.createElement('table');
+
+					// The 'value' is the raw markdown text for the table
+					const lines = value.trim().split('\n');
+					const headerLine = lines[0];
+					const bodyLines = lines.slice(2);
+
+					const parseRow = (rowString) => rowString.split('|').slice(1, -1).map(cell => cell.trim());
+
+					// Create table head
+					const thead = document.createElement('thead');
+					const headerRow = document.createElement('tr');
+					parseRow(headerLine).forEach(text => {
+						const th = document.createElement('th');
+						th.textContent = text;
+						headerRow.appendChild(th);
+					});
+					thead.appendChild(headerRow);
+					table.appendChild(thead);
+
+					// Create table body
+					const tbody = document.createElement('tbody');
+					bodyLines.forEach(line => {
+						const bodyRow = document.createElement('tr');
+						parseRow(line).forEach(text => {
+							const td = document.createElement('td');
+							td.textContent = text;
+							bodyRow.appendChild(td);
+						});
+						tbody.appendChild(bodyRow);
+					});
+					table.appendChild(tbody);
+
+					node.appendChild(table);
+					return node;
+				}
+
+				// This blot does not store a complex value, only what's needed to create it.
+				static value(domNode) {
+					// For simplicity, we don't need to retrieve the value back.
+					// If we did, we would store the markdown in a data-attribute.
+					return true;
+				}
+			}
+			TableBlot.blotName = 'atomic-table';
+			TableBlot.tagName = 'div';
+			TableBlot.className = 'ql-table-container';
+			Quill.register(TableBlot);
+
+
+			class DividerBlot extends BlockEmbed {}
+			DividerBlot.blotName = 'divider';
+			DividerBlot.tagName = 'hr';
+			Quill.register(DividerBlot);
+
+			const editor = new Quill('#editor', {
+				theme: 'bubble',
+				bounds: '#editor',
+				modules: {
+					syntax: true,
+					toolbar: [
+						[{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+						[{ 'size': ['small', false, 'large', 'huge'] }],
+						['bold', 'italic', 'underline', 'strike', 'code'],
+						['blockquote', 'code-block', { 'align': [] }],
+						[{ 'color': [] }, { 'background': [] }],
+						[{ 'list': 'ordered'}, { 'list': 'bullet' }],
+						['link', 'clean'],
+					],
+					keyboard: {
+						bindings: {
+							// --- 2. DEFINE THE KEYBOARD HANDLER FOR THE ATOMIC TABLE ---
+							'table-markdown': {
+								key: 'Enter',
+								collapsed: true,
+								handler: function(range) {
+									const [line, offset] = this.quill.getLine(range.index);
+									if (offset < line.length() - 1) return true;
+
+									const textBefore = this.quill.getText(0, range.index + 1);
+									const tableRegex = /((?:\|.*\|)\r?\n(?:\|[-|: ]+\|)\r?\n(?:\|.*\|\r?\n?)+)$/;
+									const match = tableRegex.exec(textBefore);
+
+									if (match) {
+										const tableMarkdown = match[1].trim();
+										const markdownLines = tableMarkdown.split('\n');
+										if (markdownLines.length < 3) return true;
+
+										// Validation
+										const headerCellsCount = markdownLines[0].split('|').filter(c => c.trim()).length;
+										const separatorCellsCount = markdownLines[1].split('|').filter(c => c.match(/--/)).length;
+										if (headerCellsCount === 0 || headerCellsCount !== separatorCellsCount) return true;
+
+										const startIndex = range.index + 1 - match[1].length;
+
+										// Use a single Delta operation for atomic update
+										const delta = new Delta()
+											.retain(startIndex)
+											.delete(match[1].length) // Delete markdown text
+											.insert({ 'atomic-table': tableMarkdown }) // Insert our blot
+											.insert('\n'); // Add a new paragraph after for continued typing
+
+										this.quill.updateContents(delta, Quill.sources.USER);
+
+										// Set cursor to the new line after the table
+										this.quill.setSelection(startIndex + 2, 0, Quill.sources.SILENT);
+
+										return false; // Prevent default Enter action
+									}
+									return true; // Not a table, proceed normally
+								}
+							},
+							'backspace-to-normal': {
+								key: 'Backspace',
+								handler: function(range, context) {
+									// ... (this part remains unchanged)
+									if (range.index === 0 || this.quill.getText(range.index - 1, 1) === '\n') {
+										if (context.format.header) {
+											this.quill.formatLine(range.index, 1, 'header', false, Quill.sources.USER);
+											return false;
+										}
+									}
+									return true;
+								}
+							},
+							'enter-enhanced': {
+								key: 'Enter',
+								handler: function(range, context) {
+									// ... (this part remains unchanged)
+									if (context.format.blockquote && range.length === 0) {
+										const [line, ] = this.quill.getLine(range.index);
+										if (line != null && line.length() === 1) {
+											this.quill.formatLine(range.index, 1, 'blockquote', false, Quill.sources.USER);
+											return false;
+										}
+									}
+									const lineText = this.quill.getText(range.index - 3, 3);
+									if (lineText === '---' && context.offset === 3) {
+										this.quill.deleteText(range.index - 3, 3);
+										this.quill.insertEmbed(range.index - 3, 'divider', true, Quill.sources.USER);
+										this.quill.setSelection(range.index - 2, Quill.sources.SILENT);
+										return false;
+									}
+									return true;
+								}
+							}
+						}
+					}
+				},
+			});
+
+			new QuillMarkdown(editor);
+
+			editor.root.addEventListener('keydown', (event) => {
+				if (event.key !== 'Tab') return;
+				const range = editor.getSelection();
+				if (!range) return;
+				const [line, ] = editor.getLine(range.index);
+				const isListItem = line.statics.blotName === 'list-item';
+				const isCodeBlock = line.statics.blotName === 'code-block';
+				if (isListItem) { return; }
+				event.preventDefault();
+				if (isCodeBlock) {
+					const indentChar = '    ';
+					if (range.length === 0) {
+						if (event.shiftKey) {
+							const textBefore = editor.getText(range.index - 4, 4);
+							if (textBefore === '    ') editor.deleteText(range.index - 4, 4);
+						} else {
+							editor.insertText(range.index, '    ');
+						}
+						return;
+					}
+					const indentLength = indentChar.length;
+					const codeBlockBlot = line;
+					const blockOffset = codeBlockBlot.offset(editor.scroll);
+					const blockText = codeBlockBlot.domNode.textContent;
+					const selectionStartInBlock = range.index - blockOffset;
+					const selectionEndInBlock = selectionStartInBlock + range.length;
+					const lineStartIndex = blockText.lastIndexOf('\n', selectionStartInBlock - 1) + 1;
+					let effectiveEnd = selectionEndInBlock;
+					if (range.length > 0 && blockText.charAt(effectiveEnd - 1) === '\n') effectiveEnd--;
+					let lineEndIndex = blockText.indexOf('\n', effectiveEnd);
+					if (lineEndIndex === -1) lineEndIndex = blockText.length;
+					const beforeText = blockText.substring(0, lineStartIndex);
+					const linesToModifyText = blockText.substring(lineStartIndex, lineEndIndex);
+					const afterText = blockText.substring(lineEndIndex);
+					let modifiedText, changeInLength = 0, firstLineChange = 0;
+					const lines = linesToModifyText.split('\n');
+					if (event.shiftKey) {
+						if (lines[0].startsWith(indentChar)) firstLineChange = -indentLength;
+						modifiedText = lines.map(line => {
+							if (line.startsWith(indentChar)) { changeInLength -= indentLength; return line.substring(indentLength); }
+							return line;
+						}).join('\n');
+					} else {
+						if (lines[0].length > 0 || lines.length > 1) firstLineChange = indentLength;
+						modifiedText = lines.map(line => {
+							if (line.length > 0) { changeInLength += indentLength; return indentChar + line; }
+							return line;
+						}).join('\n');
+					}
+					const newFullText = beforeText + modifiedText + afterText;
+					editor.updateContents(new Delta().retain(blockOffset).delete(blockText.length).insert(newFullText, { 'code-block': true }));
+					editor.setSelection(range.index + firstLineChange, range.length + changeInLength - firstLineChange, Quill.sources.SILENT);
+				} else {
+					const indentDirection = event.shiftKey ? '-1' : '+1';
+					editor.formatLine(range.index, range.length, 'indent', indentDirection, Quill.sources.USER);
+				}
+			}, true);
+
+			// [REVISED] Listener for collapsible headings with smarter state management
+			const COLLAPSIBLE_HEADINGS = 'h1, h2, h3, h4, h5';
+			editor.root.addEventListener('click', (event) => {
+				const heading = event.target.closest(COLLAPSIBLE_HEADINGS);
+				if (!heading) return;
+
+				// Check if the click was on the collapsible icon area (left of the text)
+				const iconClickArea = heading.getBoundingClientRect().left + 20;
+				if (event.clientX < iconClickArea) {
+					const isCurrentlyCollapsed = heading.getAttribute('data-collapsed') === 'true';
+					const currentLevel = parseInt(heading.tagName.replace('H', ''), 10);
+
+					// 1. Toggle the state of the clicked heading
+					heading.setAttribute('data-collapsed', !isCurrentlyCollapsed);
+
+					let nextElement = heading.nextElementSibling;
+
+					while (nextElement) {
+						// Stop condition: Encountered a heading of the same or higher level
+						if (nextElement.matches(COLLAPSIBLE_HEADINGS)) {
+							const nextLevel = parseInt(nextElement.tagName.replace('H', ''), 10);
+							if (nextLevel <= currentLevel) {
+								break;
+							}
+						}
+
+						// --- BUG 1 FIX: Identify and skip "separator" blank lines ---
+						// A blank line is a separator if we are collapsing, it's a blank <p>,
+						// and it's followed by a heading of same/higher level.
+						if (!isCurrentlyCollapsed) { // Only apply this logic when COLLAPSING
+							const isBlankPara = nextElement.tagName === 'P' && nextElement.innerHTML.trim() === '<br>';
+							const nextSibling = nextElement.nextElementSibling;
+							let isFollowedByStopper = false;
+							if (nextSibling && nextSibling.matches(COLLAPSIBLE_HEADINGS)) {
+								const nextSiblingLevel = parseInt(nextSibling.tagName.replace('H', ''), 10);
+								if (nextSiblingLevel <= currentLevel) {
+									isFollowedByStopper = true;
+								}
+							}
+							if (isBlankPara && isFollowedByStopper) {
+								// This is a separator, do not hide it. Skip to the next element.
+								nextElement = nextElement.nextElementSibling;
+								continue;
+							}
+						}
+
+						// 2. Main show/hide logic
+						if (isCurrentlyCollapsed) { // Action: EXPANDING
+							nextElement.classList.remove('ql-collapsible-hidden');
+						} else { // Action: COLLAPSING
+							nextElement.classList.add('ql-collapsible-hidden');
+						}
+
+						// --- BUG 2 FIX: Respect the state of child headings ---
+						// If we are expanding, and we just revealed a heading that is itself collapsed,
+						// we must skip all of its children to ensure they remain hidden.
+						if (isCurrentlyCollapsed && nextElement.matches(COLLAPSIBLE_HEADINGS) && nextElement.getAttribute('data-collapsed') === 'true') {
+							const childLevel = parseInt(nextElement.tagName.replace('H', ''), 10);
+							let subElement = nextElement.nextElementSibling;
+
+							// Inner loop to find the end of the collapsed child's section
+							while(subElement) {
+								if (subElement.matches(COLLAPSIBLE_HEADINGS)) {
+									const subLevel = parseInt(subElement.tagName.replace('H', ''), 10);
+									if (subLevel <= childLevel) {
+										// Found the end. Jump the outer loop's cursor to this element.
+										nextElement = subElement.previousElementSibling;
+										break;
+									}
+								}
+								subElement = subElement.nextElementSibling;
+							}
+
+							// If the inner loop reached the end of the document
+							if (!subElement) {
+								nextElement = null; // Signal to the outer loop to terminate
+							}
+						}
+
+						// 3. Move to the next element
+						if (nextElement) {
+							nextElement = nextElement.nextElementSibling;
+						}
+					}
+				}
+			});
+
+			editor.on('text-change', (delta, oldDelta, source) => {
+				if (source === 'user' && activeNoteId && saveBtn.disabled) {
+					saveBtn.disabled = false;
+					saveBtn.innerHTML = "<i class='fas fa-save'></i> Save";
+				}
+				setTimeout(updateOutline, 300);
+				if (source === 'user') {
+					const documentLength = editor.getLength();
+					delta.ops.forEach(op => {
+						if (op.insert && op.attributes && op.attributes['code-block']) {
+							const codeBlockEndIndex = editor.getSelection().index + op.insert.length;
+							if (codeBlockEndIndex >= documentLength - 1) {
+								editor.insertText(documentLength, '\n', Quill.sources.SILENT);
+								editor.setSelection(documentLength, 0, Quill.sources.SILENT);
+							}
+						}
+					});
+				}
+			});
+
+			// --- NEW: Add Paste Handler for Image Uploads ---
+			editor.root.addEventListener('paste', async (event) => {
+				const items = (event.clipboardData || window.clipboardData).items;
+				let imageFile = null;
+
+				for (const item of items) {
+					if (item.type.indexOf('image') === 0) {
+						imageFile = item.getAsFile();
+						break; // Found an image, stop searching
+					}
+				}
+
+				if (imageFile) {
+					event.preventDefault(); // Prevent default paste behavior
+					const range = editor.getSelection(true); // Get cursor position
+					if (!range) return;
+
+					// 1. Insert a placeholder
+					const placeholderText = '[Uploading image...]';
+					editor.insertText(range.index, placeholderText, 'user');
+					const placeholderLength = placeholderText.length;
+
+					try {
+						// 2. Upload the image
+						const imageUrl = await uploadImage(imageFile);
+
+						// 3. Replace placeholder with the actual image
+						editor.deleteText(range.index, placeholderLength, 'user');
+						editor.insertEmbed(range.index, 'image', imageUrl, 'user');
+						editor.setSelection(range.index + 1, 'user'); // Move cursor after the image
+
+					} catch (error) {
+						// 4. Handle upload failure
+						console.error('Image upload failed:', error);
+						editor.deleteText(range.index, placeholderLength, 'user');
+						editor.insertText(range.index, '[Image upload failed]', { 'color': 'red' }, 'user');
+					}
+				}
+			});
+			return editor;
+		}
+
+		function setEditorEditable(isEditable) { if (quill) quill.enable(isEditable); }
+		function showLoader() { editorLoader.classList.remove('hidden'); setEditorEditable(false); }
+		function hideLoader() { editorLoader.classList.add('hidden'); setEditorEditable(true); }
+
+		async function initializeDocs() {
+			await refreshFileTree();
+			const firstFile = flatNodes.find(node => node.type === 'file');
+			if (firstFile) await loadNote(firstFile.id);
+			else { quill.root.innerHTML = '<h1>NO docs</h1><p>Create a new note to get started.</p>'; setEditorEditable(false); }
+		}
+		async function loadNote(noteId) {
+			if (!noteId || noteId === activeNoteId) return;
+			showLoader();
+			try {
+				document.querySelector('.tree-item.active')?.classList.remove('active');
+				document.querySelector(`.tree-item[data-id="${noteId}"]`)?.classList.add('active');
+				activeNoteId = noteId;
+				const note = await api.getNode(noteId);
+				quill.root.innerHTML = note.content || '';
+				updateOutline();
+				saveBtn.disabled = true;
+				saveBtn.innerHTML = '<i class=\'fas fa-check\'></i> Saved';
+			} catch (error) {
+				quill.root.innerHTML = `<h1>加载失败</h1><p>${error.message}</p>`;
+				activeNoteId = null;
+			} finally {
+				hideLoader();
+			}
+		}
+		async function saveActiveNote() {
+			if (!activeNoteId || saveBtn.disabled) return;
+			const content = quill.root.innerHTML;
+			saveBtn.disabled = true;
+			saveBtn.innerHTML = '<i class=\'fas fa-spinner fa-spin\'></i> Saving...';
+			try {
+				await api.saveNode(activeNoteId, content);
+				saveBtn.innerHTML = '<i class=\'fas fa-check\'></i> Saved';
+			} catch (error) {
+				saveBtn.innerHTML = '<i class=\'fas fa-times\'></i> Error';
+				setTimeout(() => { saveBtn.disabled = false; saveBtn.innerHTML = '<i class=\'fas fa-save\'></i> Save'; }, 2000);
+			}
+		}
+		async function handleDelete(nodeId) {
+			const nodeToDelete = flatNodes.find(n => n.id === nodeId);
+			if (!nodeToDelete || !confirm(`delete "${nodeToDelete.title}"?`)) return;
+			await api.deleteNode(nodeId);
+			await refreshFileTree();
+			if (nodeId === activeNoteId) {
+				activeNoteId = null; selectedNodeId = null;
+				const firstFile = flatNodes.find(n => n.type === 'file');
+				if (firstFile) await loadNote(firstFile.id); else { quill.root.innerHTML = '<h1>所有文档已删除</h1>'; setEditorEditable(false); }
+			}
+		}
+		async function handleRename(nodeId) {
+			const nodeToRename = flatNodes.find(n => n.id === nodeId);
+			if (!nodeToRename) return;
+			const newTitle = prompt('New name:', nodeToRename.title);
+			if (newTitle && newTitle.trim() && newTitle.trim() !== nodeToRename.title) {
+				await api.renameNode(nodeId, newTitle.trim());
+				await refreshFileTree();
+			}
+		}
+		function flattenTree(nodes, parentId = null) {
+			let list = [];
+			nodes.forEach(node => {
+				list.push({...node, parent_id: parentId, children: undefined});
+				if (node.children) list = list.concat(flattenTree(node.children, node.id));
+			});
+			return list;
+		}
+		async function refreshFileTree() {
+			const fileSystemTree = await api.getTree();
+			flatNodes = flattenTree(fileSystemTree);
+			renderFileTree(fileSystemTree);
+		}
+		function renderFileTree(fileSystemTree) {
+			const createTreeHtml = (items) => items.sort((a, b) => a.title.localeCompare(b.title)).map(item => {
+				const isSelected = item.id === selectedNodeId ? 'selected' : '';
+				if (item.type === 'file') {
+					const isActive = item.id === activeNoteId ? 'active' : '';
+					return `<li><div class='tree-item file ${isActive} ${isSelected}' data-id='${item.id}' draggable='true'><span class='icon icon-file'><i class='fas fa-file-alt'></i></span><span class='name'>${item.title}</span></div></li>`;
+				} else {
+					const isCollapsed = collapsedFolderIds.has(item.id) ? 'collapsed' : '';
+					return `<li><div class='tree-item folder ${isSelected} ${isCollapsed}' data-id='${item.id}' draggable='true'><span class='icon toggle-icon'><i class='fas fa-caret-down'></i></span><span class='icon icon-folder'><i class='fas fa-folder'></i></span><span class='name'>${item.title}</span></div><ul class='nested'>${item.children ? createTreeHtml(item.children) : ''}</ul></li>`;
+				}
+			}).join('');
+			fileTreeEl.innerHTML = createTreeHtml(fileSystemTree || []);
+		}
+		function getParentIdForNewNode() {
+			if (!selectedNodeId) return null;
+			const selectedNode = flatNodes.find(n => n.id === selectedNodeId);
+			return selectedNode ? (selectedNode.type === 'folder' ? selectedNode.id : selectedNode.parent_id) : null;
+		}
+		function setupEventListeners() {
+			themeToggleBtn.addEventListener('click', handleThemeToggle);
+			saveBtn.addEventListener('click', saveActiveNote);
+			renameBtn.addEventListener('click', () => handleRename(selectedNodeId));
+			deleteBtn.addEventListener('click', () => handleDelete(selectedNodeId));
+			document.addEventListener('click', () => contextMenu.style.display = 'none');
+			newNoteBtn.addEventListener('click', async () => { const name = prompt('New doc name:'); if (name) { await api.createNode({type: 'file', title: name, parent_id: getParentIdForNewNode()}); await refreshFileTree(); } });
+			newFolderBtn.addEventListener('click', async () => { const name = prompt('New folder name:'); if (name) { await api.createNode({type: 'folder', title: name, parent_id: getParentIdForNewNode()}); await refreshFileTree(); } });
+			fileTreeEl.addEventListener('click', e => {
+				const target = e.target.closest('.tree-item'); if (!target) return;
+				const id = target.dataset.id;
+				document.querySelector('.tree-item.selected')?.classList.remove('selected');
+				target.classList.add('selected'); selectedNodeId = id;
+				if (target.classList.contains('file')) loadNote(id);
+				else if (target.classList.contains('folder')) { if (target.classList.toggle('collapsed')) collapsedFolderIds.add(id); else collapsedFolderIds.delete(id); }
+			});
+			fileTreeEl.addEventListener('contextmenu', e => {
+				e.preventDefault(); const target = e.target.closest('.tree-item'); if (!target) return;
+				selectedNodeId = target.dataset.id; document.querySelector('.tree-item.selected')?.classList.remove('selected');
+				target.classList.add('selected'); contextMenu.style.top = `${e.clientY}px`; contextMenu.style.left = `${e.clientX}px`; contextMenu.style.display = 'flex';
+			});
+			let draggedItemId = null;
+			fileTreeEl.addEventListener('dragstart', e => { const target = e.target.closest('.tree-item'); if (!target) return; draggedItemId = target.dataset.id; e.dataTransfer.setData('text/plain', draggedItemId); setTimeout(() => target.classList.add('dragging'), 0); });
+			fileTreeEl.addEventListener('dragend', () => document.querySelector('.tree-item.dragging')?.classList.remove('dragging'));
+			fileTreeEl.addEventListener('dragover', e => { e.preventDefault(); document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); const target = e.target.closest('.tree-item.folder'); if (target && target.dataset.id !== draggedItemId) target.classList.add('drag-over'); });
+			fileTreeEl.addEventListener('drop', async e => { e.preventDefault(); document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); const target = e.target.closest('.tree-item.folder'); const sourceId = e.dataTransfer.getData('text/plain'); if (sourceId) { await api.moveNode(sourceId, target ? target.dataset.id : null); await refreshFileTree(); } });
+		}
+		function setupResizers() {
+			function setupResizer(resizerId, panelId, direction) {
+				const resizer = document.getElementById(resizerId); const panel = document.getElementById(panelId);
+				resizer.addEventListener('mousedown', e => {
+					e.preventDefault(); let x = e.clientX; let w = panel.getBoundingClientRect().width;
+					const move = e => panel.style.width = `${direction === 'left' ? w + (e.clientX - x) : w - (e.clientX - x)}px`;
+					const up = () => document.removeEventListener('mousemove', move);
+					document.addEventListener('mousemove', move); document.addEventListener('mouseup', up, {once: true});
+				});
+			}
+			setupResizer('resizer-left', 'sidebar-left', 'left'); setupResizer('resizer-right', 'sidebar-right', 'right');
+		}
+
+		const savedTheme = localStorage.getItem('docs-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+		applyTheme(savedTheme);
+		quill = initializeEditor();
+		setupEventListeners();
+		setupResizers();
+		await initializeDocs();
+	}
+	document.addEventListener('DOMContentLoaded', main);
+</script>
+</body>
+</html>

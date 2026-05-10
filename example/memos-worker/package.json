@@ -1,0 +1,14 @@
+{
+	"name": "memos-worker",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "npx wrangler deploy",
+		"dev remote": "npx wrangler dev --x-remote-bindings",
+		"dev local": "npx wrangler dev",
+		"start": "npx wrangler dev"
+	},
+	"devDependencies": {
+		"wrangler": "^4.33.0"
+	}
+}
